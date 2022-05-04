@@ -119,7 +119,7 @@ $request->user()->twoFactorQrCodeSvg();
         return view('auth.two-factor-challenge');
     });
 
-    ```
+```
 
 ```php
 
@@ -127,17 +127,81 @@ $request->user()->twoFactorQrCodeSvg();
         return view('auth.verify-email');
     });
 
-    ```
+    
+```
 
 permet de verifier votre mail, dans la view on indique le link
 
-``php
+```php
 @if (session('status') == 'verification-link-sent')
     <div class="mb-4 font-medium text-sm text-green-600">
         A new email verification link has been emailed to you!
     </div>
 @endif
-``
+```
+
+pour eviter d'injecter des requetes malicieuses dans un method=post par exemple
+dans le route, on peut taper
+```php
+
+    $token = $request->session()->token();
+ 
+    $token = csrf_token();
+ 
+    // ...
+
+```
+ou bien la view
+@csrf
+
+pour exclure certains chemin de la protection quand on request une URI (api)
+
+```php
+
+<?php
+ 
+namespace App\Http\Middleware;
+ 
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as Middleware;
+ 
+class VerifyCsrfToken extends Middleware
+{
+    /**
+     * The URIs that should be excluded from CSRF verification.
+     *
+     * @var array
+     */
+    protected $except = [
+        'stripe/*',
+        'http://example.com/foo/bar',
+        'http://example.com/foo/*',
+    ];
+}
+
+```
+
+## middleware interdiction
+nous pouvons dans la route imbriquer un middleware pour dire qui a accès a celle ci, nous pouvons aussi charger un controller qui indique des règles non défini
+```php
+
+})->middleware(EnsureTokenIsValid::class);
+
+```
+
+quand nous avons besoin qu'une page soit vu par une categorie ou certaines functions ne soit pas toute accessible
+```php
+
+  })->withoutMiddleware([EnsureTokenIsValid::class]);
+
+ou
+
+
+Route::withoutMiddleware([EnsureTokenIsValid::class])->group(function () {
+    Route::get('/profile', function () {
+        //
+    });
+```
+
 
 
 
@@ -161,10 +225,63 @@ $hashed = Hash::make('password', [
 
 nous pouvons utiliser la function php crypt pour plus de securite
 
-```      
+
+
  if (CRYPT_BLOWFISH == 1) {
     $cryptoon = crypt($hashed, 'wx');
 }
 dd($cryptoon);
+
+pour generer un password, nous pouvons creer une route
+
+```php
+Route::put('/generate/password', [FortifyController::class, 'generate']);
+```
+
+Nous permet donc de suivre la route generate est de nous retrouver dans le controller fortify à la function generate ou nous pouvons lui indiquer la function Hash::class
+
+## fetch données avec $request
+```php
+$request->fullUrlWithQuery(['type' => 'phone']);
+```
+la function fullurlwithquery permet de recuperer les parametres dans une url ex http://me.com/send?dollard=usd?poisson=truite...
+on peut donc indiquer type = poisson
+
+pour prendre toute la request
+```php
+$request->collect();
+```
+
+pour fetch en particulier la 1er ligne, et le nom par exemple
+```php
+$name = $request->input('products.0.name');
+```
+ou pour toute les lignes avec un nom
+```php
+$names = $request->input('products.*.name');
+```
+pour les fichier json c'est la même chose, pour les strings
+```php
+$name = $request->string('name')->trim();
+```
+
+pour determiner si une valeur est presente et retourne un boolean true or false
+```php
+if ($request->has('name')) {
+    //
+}
+```
+du coup on peut déterminer 2 actions a faire si la valeur est presente ou non
+```php
+$request->whenHas('name', function ($input) {
+    // The "name" value is present...
+}, function () {
+    // The "name" value is not present...
+});
+```
+
+nous pouvons additionner des valeurs si celle ci ne sont pas disponible a la requete d'origine
+```php
+$request->merge(['votes' => 0]);
 ```
 <!-- laz ou a compiler webpack le css! -->
