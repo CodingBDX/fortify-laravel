@@ -14,7 +14,7 @@ composer require laravel/fortify
 php artisan vendor:publish --provider="Laravel\Fortify\FortifyServiceProvider"
 
 php artisan migrate  (ne pas oublier de configurer le fichier .env pour relier a la table)
-
+```
 ** Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
@@ -24,7 +24,8 @@ php artisan migrate  (ne pas oublier de configurer le fichier .env pour relier a
                 'max:255',
                 Rule::unique(User::class),
             ], **
-
+```
+permet de choisir les options de validitée, par exemple on impose que le name soit un string est qu'il est une valeur max de 255 caractere
 on remarque comment il fonctionne dans le dossier app/actions
 
 permet l'authentification a deux facteurs!
@@ -46,11 +47,13 @@ Fortify::loginView(function () {
 
 
 et pour le register, on imbrique la vue register
-
+```php
     Fortify::registerView(function () {
         return view('auth.register');
     });
-
+```
+pour modifier les field du register
+App\Actions\Fortify\CreateNewUser
     puis si on veut le systeme de reset de password
 
         Fortify::requestPasswordResetLinkView(function () {
@@ -81,6 +84,63 @@ la commande npx tailwindcss init permet de creer le fichier tailwind.config.js
 et pour finir dans le fichier webpack, il faut indiquer que nous utilisons le plugin tailwindcss pour compiler `npm install && npm run watch`
 
 pour relier le css creer un link:css et dans source {{ asset('css/app.css') }} 
+
+
+la redirection dans un logout on redirige vers la page principale
+
+```php
+    $this->app->instance(LogoutResponse::class, new class implements LogoutResponse {
+        public function toResponse($request)
+        {
+            return redirect('/');
+        }
+
+```
+
+
+```php
+
+    Fortify::confirmPasswordView(function () {
+        return view('auth.confirm-password');
+    });
+
+```
+
+Permet de confirmer le password
+
+```php
+$request->user()->twoFactorQrCodeSvg();
+```
+2 facteurs d'authentifications et le code d'appel dans la function boot de fortify
+
+```php
+
+    Fortify::twoFactorChallengeView(function () {
+        return view('auth.two-factor-challenge');
+    });
+
+    ```
+
+```php
+
+    Fortify::verifyEmailView(function () {
+        return view('auth.verify-email');
+    });
+
+    ```
+
+permet de verifier votre mail, dans la view on indique le link
+
+``php
+@if (session('status') == 'verification-link-sent')
+    <div class="mb-4 font-medium text-sm text-green-600">
+        A new email verification link has been emailed to you!
+    </div>
+@endif
+``
+
+
+
 
 ## hashing
 la method hash permet de creer et encrypter un nouveau password
