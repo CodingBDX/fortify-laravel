@@ -101,9 +101,10 @@ $hashed = Hash::make('password', [
 
 nous pouvons utiliser la function php crypt pour plus de securite
 
-      
-** if (CRYPT_BLOWFISH == 1) {
+```      
+ if (CRYPT_BLOWFISH == 1) {
     $cryptoon = crypt($hashed, 'wx');
 }
-dd($cryptoon); **
+dd($cryptoon);
+```
 <!-- laz ou a compiler webpack le css! -->
